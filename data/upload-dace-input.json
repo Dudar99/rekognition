@@ -1,0 +1,38 @@
+{
+  "Records": [
+    {
+      "eventVersion": "2.1",
+      "eventSource": "aws:s3",
+      "awsRegion": "us-east-1",
+      "eventTime": "2020-03-31T18:11:46.689Z",
+      "eventName": "ObjectCreated:Put",
+      "userIdentity": {
+        "principalId": "AY27R66G85LJ0"
+      },
+      "requestParameters": {
+        "sourceIPAddress": "5.58.201.94"
+      },
+      "responseElements": {
+        "x-amz-request-id": "FE819AAAF93D60FC",
+        "x-amz-id-2": "YJrpmTUXXafbWWlRBwA/ftUbGxIBAn8LJDhRSeNmWDkmUg8ZG6gLlwP09A2nPASFhP/0975XgfEQf+9BeBH4DYwbDkuKKNcV4bKpYVkkUOQ="
+      },
+      "s3": {
+        "s3SchemaVersion": "1.0",
+        "configurationId": "rekognition-dev-create_collection_from_faces-99be3f93858d0b47cf83f5ccf3e65bc4",
+        "bucket": {
+          "name": "videos-sample-1",
+          "ownerIdentity": {
+            "principalId": "AY27R66G85LJ0"
+          },
+          "arn": "arn:aws:s3:::videos-sample-1"
+        },
+        "object": {
+          "key": "faces/photo_2019-10-18_17-42-16.jpg",
+          "size": 64732,
+          "eTag": "9703d1b3d6cbfc3996ac7cb3c036ae5c",
+          "sequencer": "005E8387E8ED94E85B"
+        }
+      }
+    }
+  ]
+}
