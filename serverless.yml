@@ -12,15 +12,18 @@ provider:
   name: aws
   runtime: python3.6
 
-stage: dev
+stage: dev123
 region: us-east-1
-role: arn:aws:iam::573200067457:role/lambdawiths3
+user: arn:aws:iam::573200067457:user/dudar99
+role: arn:aws:iam::573200067457:role/rekognition-dev123-us-east-1-lambdaRole
 
 package:
   exclude:
     - venv/**
     - .gitignore
     - data/**
+    - deploy.sh
+    - .aws-sam/**
 
 # you can add statements to the Lambda function's IAM Role here
 #  iamRoleStatements:
@@ -54,6 +57,7 @@ package:
 functions:
   hello:
     handler: handler.lambda_handler
+    timeout: 50
     events:
       - s3:
           bucket: videos-sample-1
@@ -63,6 +67,7 @@ functions:
           existing: true
 
   create_collection_from_faces:
+
     handler: create_collection_from_faces.lambda_handler
     events:
       - s3:
@@ -71,6 +76,8 @@ functions:
           rules:
             - prefix: faces/
           existing: true
+
+
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events
 #    Check the event documentation for details

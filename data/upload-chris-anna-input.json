@@ -1,0 +1,38 @@
+{
+  "Records": [
+    {
+      "eventVersion": "2.1",
+      "eventSource": "aws:s3",
+      "awsRegion": "us-east-1",
+      "eventTime": "2020-04-04T12:56:35.617Z",
+      "eventName": "ObjectCreated:Put",
+      "userIdentity": {
+        "principalId": "AY27R66G85LJ0"
+      },
+      "requestParameters": {
+        "sourceIPAddress": "5.58.201.94"
+      },
+      "responseElements": {
+        "x-amz-request-id": "9F35C8E75AC4BA84",
+        "x-amz-id-2": "yy2OQGkEP6kejH3dsHcsxalXxxf+uUhthugC8gaD5iehwRRwEpdkyIziNLxAdpLPSlgcU4VHSnPm9JtRpD0XKGQPTDMVP/yq"
+      },
+      "s3": {
+        "s3SchemaVersion": "1.0",
+        "configurationId": "rekognition-dev123-hello-667f6b455b26ff6b3f07b60f5c2601b7",
+        "bucket": {
+          "name": "videos-sample-1",
+          "ownerIdentity": {
+            "principalId": "AY27R66G85LJ0"
+          },
+          "arn": "arn:aws:s3:::videos-sample-1"
+        },
+        "object": {
+          "key": "videos/video_2020-04-04_15-45-04.mp4",
+          "size": 1497681,
+          "eTag": "a6a22b5106284169912b5673b6570185",
+          "sequencer": "005E8884099DBE72DA"
+        }
+      }
+    }
+  ]
+}

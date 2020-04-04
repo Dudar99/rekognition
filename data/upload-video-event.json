@@ -1,0 +1,38 @@
+{
+  "Records": [
+    {
+      "eventVersion": "2.1",
+      "eventSource": "aws:s3",
+      "awsRegion": "us-east-1",
+      "eventTime": "2020-04-04T11:41:16.461Z",
+      "eventName": "ObjectCreated:Put",
+      "userIdentity": {
+        "principalId": "AY27R66G85LJ0"
+      },
+      "requestParameters": {
+        "sourceIPAddress": "5.58.201.94"
+      },
+      "responseElements": {
+        "x-amz-request-id": "BACFEF1B38FC7CE1",
+        "x-amz-id-2": "gFnZx1rjO0im11iqpILQBWJ2vWVHpHG71iUAz++2jGliQlGuBKWQUvQfgyBs4pLUOIjpvbuaCiP6pxrhNT7JF5iKgzIASJ6J"
+      },
+      "s3": {
+        "s3SchemaVersion": "1.0",
+        "configurationId": "rekognition-dev123-hello-667f6b455b26ff6b3f07b60f5c2601b7",
+        "bucket": {
+          "name": "videos-sample-1",
+          "ownerIdentity": {
+            "principalId": "AY27R66G85LJ0"
+          },
+          "arn": "arn:aws:s3:::videos-sample-1"
+        },
+        "object": {
+          "key": "videos/WIN_20200404_14_14_20_Pro.mp4",
+          "size": 13346470,
+          "eTag": "7f8d3b5020e8fcfa4052ea78032c245f",
+          "sequencer": "005E887261AFE2122F"
+        }
+      }
+    }
+  ]
+}
