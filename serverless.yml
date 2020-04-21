@@ -57,7 +57,7 @@ package:
 functions:
   hello:
     handler: handler.lambda_handler
-    timeout: 50
+    timeout: 100
     events:
       - s3:
           bucket: videos-sample-1

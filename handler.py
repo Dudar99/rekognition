@@ -206,6 +206,28 @@ class VideoDetect:
         self.sqs.delete_queue(QueueUrl=self.sqs_queue_url)
         self.sns.delete_topic(TopicArn=self.sns_topic_arn)
 
+    def __subscribe_to_email(self, email: str):
+        print("Subscribing SNS to send emails")
+        response = self.sns.subscribe(
+            TopicArn=self.sns_topic_arn,
+            Protocol='email',
+            Endpoint=email,
+
+            ReturnSubscriptionArn=True | False
+        )
+        print(f"Subscribing response:{response}")
+
+    def publish_results_to_sns(self, recs):
+
+        self.__subscribe_to_email(email="yurii_dudar@epam.com")
+        self.sns.publish(
+            TopicArn="arn:aws:sns:us-east-1:573200067457:mytopic",#self.sns_topic_arn,
+            # PhoneNumber='+380971237965',
+            Message=''.join(str(recs)),
+            Subject='Students',
+
+        )
+
 
 def lambda_handler(event, context):
     print("Test event: ", event)
@@ -222,7 +244,9 @@ def lambda_handler(event, context):
     # TODO remove this sleep and add SNS and SQS or Lambda handler for matched faces handling
 
     analyzer.get_face_detection_results()
-    analyzer.get_top_matched_faces()
-    analyzer.delete_topic_and_queue()
-    print("End!!!")
-    return None
+    response = analyzer.get_top_matched_faces()
+    analyzer.publish_results_to_sns(response)
+    time.sleep(10)
+    # analyzer.delete_topic_and_queue()
+
+    return "Finishing..."

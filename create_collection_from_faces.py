@@ -29,3 +29,5 @@ def lambda_handler(event, context):
     faces = client.list_faces(
         CollectionId=collection_id,
     )
+    print(f"response: {response}")
+    print(f"faces in collection: {faces}")
