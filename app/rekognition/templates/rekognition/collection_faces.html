@@ -1,0 +1,17 @@
+{% extends 'rekognition/index.html' %}
+<h1> {{ faces }} </h1>
+{% block content %}
+<form action="/rekognition/collection/{{ collection_id }}" method="post">
+    {% csrf_token %}
+    <label for="first_name">First name:</label>
+    <input id="first_name" type="text" name="first_name">
+
+    <label for="last_name">Last name:</label>
+    <input id="last_name" type="text" name="last_name">
+
+    <label for="image">Image upload:</label>
+    <input type="file" id="image" alt="Submit" width="48" height="48" name="img">
+
+    <input type="submit" value="Add">
+</form>
+{% endblock %}
