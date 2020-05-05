@@ -245,8 +245,8 @@ def lambda_handler(event, context):
 
     analyzer.get_face_detection_results()
     response = analyzer.get_top_matched_faces()
-    analyzer.publish_results_to_sns(response)
-    time.sleep(10)
-    # analyzer.delete_topic_and_queue()
+    # analyzer.publish_results_to_sns(response)
+    # time.sleep(10)
+    analyzer.delete_topic_and_queue()
 
     return "Finishing..."
