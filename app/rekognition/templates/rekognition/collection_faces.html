@@ -1,24 +1,45 @@
 {% extends 'rekognition/index.html' %}
 
 {% block content %}
-    <ul>
+
+
+<div class="container">
+    {{ list }}
+    <div class="row">
         {% for f in faces %}
-            <li >
-                <a href="/rekognition/face/{{ f.person.id }}">{{ f.person.first_name }} {{ f.person.last_name }} </a>
-            </li>
-        <img src="data:image/png;base64,{{ f.img }}" />
+        <div class="col-lg-3">
+            <div class="card">
+                <img src="data:image/png;base64,{{ f.img }}" alt="Avatar" style="width:250px height: 250px"/>
+                <div class="container">
+                    <h4><b><a href="/rekognition/face/{{ f.person.id }}">{{ f.person.first_name }}
+                        {{f.person.last_name }} </a></b>
+                    </h4>
+                    <p>Face id: {{ f.person.face_id}}</p>
+                </div>
+            </div>
+        </div>
         {% endfor %}
-    </ul><form action="/rekognition/collection/{{ collection_id }}" method="post">
-    {% csrf_token %}
-    <label for="first_name">First name:</label>
-    <input id="first_name" type="text" name="first_name">
 
-    <label for="last_name">Last name:</label>
-    <input id="last_name" type="text" name="last_name">
+    </div>
+</div>
+<div class="container">
+    <form action="/rekognition/collection/{{ collection_id }}" method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="first_name">First name:</label>
+            <input id="first_name" type="text" name="first_name">
+        </div>
+        <div class="form-group">
+            <label for="last_name">Last name:</label>
+            <input id="last_name" type="text" name="last_name">
+        </div>
+        <div class="form-group form-check">
+            <label for="image">Image upload:</label>
+            <input type="file" id="image" alt="Submit" width="48" height="48" name="img">
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+</div>
 
-    <label for="image">Image upload:</label>
-    <input type="file" id="image" alt="Submit" width="48" height="48" name="img">
 
-    <input type="submit" value="Add">
-</form>
 {% endblock %}

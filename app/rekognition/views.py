@@ -86,7 +86,8 @@ def collection_faces(request, id):
         img_path = os.path.join(DEFAULT_IMG_LOCAL_PATH, img)
 
         with open(img_path, "rb") as f:
-            key = os.path.join(path_to_collection, img)
+            s3_image_name = first_name+last_name+img
+            key = os.path.join(path_to_collection, s3_image_name)
             s3.upload_fileobj(f, DEFAULT_BUCKET, key)
 
         response = rekognition.index_faces(
@@ -114,7 +115,7 @@ def collection_faces(request, id):
 
     template = loader.get_template('rekognition/collection_faces.html')
     context = create_context(id)
-
+    context.update({'list' : rekognition.list_faces(CollectionId=collection.collection_id)})
     return HttpResponse(template.render(context, request))
 
 
