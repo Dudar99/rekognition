@@ -1,7 +1,14 @@
 {% extends 'rekognition/index.html' %}
-<h1> {{ faces }} </h1>
+
 {% block content %}
-<form action="/rekognition/collection/{{ collection_id }}" method="post">
+    <ul>
+        {% for f in faces %}
+            <li >
+                <a href="/rekognition/face/{{ f.person.id }}">{{ f.person.first_name }} {{ f.person.last_name }} </a>
+            </li>
+        <img src="data:image/png;base64,{{ f.img }}" />
+        {% endfor %}
+    </ul><form action="/rekognition/collection/{{ collection_id }}" method="post">
     {% csrf_token %}
     <label for="first_name">First name:</label>
     <input id="first_name" type="text" name="first_name">
