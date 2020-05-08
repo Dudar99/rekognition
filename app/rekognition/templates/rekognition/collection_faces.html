@@ -4,7 +4,12 @@
 
 
 <div class="container">
-    {{ list }}
+    <!--    {{ list }}-->
+    <form action="/rekognition/collection/{{ collection_id }}/video" method="post">
+        {% csrf_token %}
+
+        <button type="submit" class="btn btn-secondary btn-lg btn-block">Video results</button>
+    </form>
     <div class="row">
         {% for f in faces %}
         <div class="col-lg-3">

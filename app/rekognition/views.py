@@ -2,7 +2,8 @@ import base64
 import os
 
 import boto3
-from django.shortcuts import render
+from boto3.dynamodb.conditions import Key
+
 
 # Create your views here.
 from django.http import HttpResponse
@@ -11,8 +12,11 @@ from .models import Collection, Person
 
 DEFAULT_IMG_LOCAL_PATH = '/home/dudar99/Pictures'
 DEFAULT_BUCKET = "videos-sample-1"
-rekognition = boto3.client('rekognition', region_name='us-east-1')
+DEFAULT_REGION = 'us-east-1'
+rekognition = boto3.client('rekognition', region_name=DEFAULT_REGION)
 s3 = boto3.client('s3')
+dynamodb = boto3.client('dynamodb', region_name=DEFAULT_REGION)
+dynamodb_resource = boto3.resource('dynamodb', region_name="us-east-1")
 
 
 def add_face_to_folder(bucket, path, photo_name):
@@ -28,8 +32,56 @@ def delete_all_collections():
 
 
 def create_s3_folder(bucket, path, name):
-    name = os.path.join(path, name) + '/'
+    name = f"{path}/{name}/"
     s3.put_object(Bucket=bucket, Key=(name))
+
+
+def create_dynamodb_table(table_name):
+    try:
+        table = dynamodb.create_table(
+            TableName=table_name,
+            KeySchema=[
+                {
+                    'AttributeName': 'collection_name',
+                    'KeyType': 'HASH'  # Partition key
+                },
+                {
+                    'AttributeName': 'results',
+                    'KeyType': 'RANGE'  # sort key
+                }
+            ],
+            AttributeDefinitions=[
+                {
+                    'AttributeName': 'collection_name',
+                    'AttributeType': 'S'
+                },
+
+                {
+                    'AttributeName': 'results',
+                    'AttributeType': 'S'
+                },
+
+            ],
+            ProvisionedThroughput={
+                'ReadCapacityUnits': 10,
+                'WriteCapacityUnits': 10
+            }
+        )
+
+        print("Table status:", table)
+    except Exception as e:
+        print(e)
+
+
+def get_data_from_dynamodb_table(table_name):
+    table = dynamodb_resource.Table(table_name)
+
+    res = table.query(
+        TableName=table_name,
+        KeyConditionExpression=Key('collection_name').eq(table_name)
+    )
+    results = res['Items']
+    return results
 
 
 def collection(request):
@@ -46,7 +98,9 @@ def collection(request):
 
         else:
             response = rekognition.create_collection(CollectionId=collection_id)
-            create_s3_folder(DEFAULT_BUCKET, '/faces', collection_id)
+            create_s3_folder(DEFAULT_BUCKET, 'faces', collection_id)
+            create_s3_folder(DEFAULT_BUCKET, 'videos', collection_id)
+            create_dynamodb_table(collection_id)
             print(response)
             collection = Collection(collection_id=collection_id)
             collection.save()
@@ -66,7 +120,7 @@ def get_base64_image(person):
     return base64_message
 
 
-def create_context(id):
+def create_faces_context(id):
     return {
         'faces': [{'person': person, 'img': get_base64_image(person)} for person in
                   Person.objects.filter(collection_id_id=id)],
@@ -86,7 +140,7 @@ def collection_faces(request, id):
         img_path = os.path.join(DEFAULT_IMG_LOCAL_PATH, img)
 
         with open(img_path, "rb") as f:
-            s3_image_name = first_name+last_name+img
+            s3_image_name = first_name + last_name + img
             key = os.path.join(path_to_collection, s3_image_name)
             s3.upload_fileobj(f, DEFAULT_BUCKET, key)
 
@@ -114,8 +168,19 @@ def collection_faces(request, id):
         person.save()
 
     template = loader.get_template('rekognition/collection_faces.html')
-    context = create_context(id)
-    context.update({'list' : rekognition.list_faces(CollectionId=collection.collection_id)})
+    context = create_faces_context(id)
+    # context.update({'list' : rekognition.list_faces(CollectionId=collection.collection_id)})
+
+    return HttpResponse(template.render(context, request))
+
+
+def video_results(request, id):
+    template = loader.get_template('rekognition/video.html')
+    collection = Collection.objects.filter(id=id).first()
+    video_rekognition_results = get_data_from_dynamodb_table(collection.collection_id)
+    context = {
+        'results': video_rekognition_results
+    }
     return HttpResponse(template.render(context, request))
 
 
