@@ -4,21 +4,21 @@
       "eventVersion": "2.1",
       "eventSource": "aws:s3",
       "awsRegion": "us-east-1",
-      "eventTime": "2020-03-31T16:07:16.843Z",
+      "eventTime": "2020-05-07T17:39:34.434Z",
       "eventName": "ObjectCreated:Put",
       "userIdentity": {
-        "principalId": "AY27R66G85LJ0"
+        "principalId": "AWS:AIDAYK5LC5OAWHAFAGNSQ"
       },
       "requestParameters": {
         "sourceIPAddress": "5.58.201.94"
       },
       "responseElements": {
-        "x-amz-request-id": "1F25F644C9088386",
-        "x-amz-id-2": "bSxgdLoTJ29q1L5yIbfVpe2kV+/6mv+PPrLxVJ32zh49Mrmu56jJN6H6BCKNnxdenRz8nXSa5/rtB98e5ffj2dAUJ4um6vEk"
+        "x-amz-request-id": "7AC30FCA80C5E322",
+        "x-amz-id-2": "IoO6kPaQh47Fw7Ll+P+JGQA5RNHJBFC0GTdjPHnS8RFOniKDyO+jmj/MTKVTAA0/0Adv92do3D2J3+V4u02x+WBfIvKsyFcr"
       },
       "s3": {
         "s3SchemaVersion": "1.0",
-        "configurationId": "rekognition-dev-hello-68a737133cefb25bff959852b8f04754",
+        "configurationId": "rekognition-dev321-rekognition-667f6b455b26ff6b3f07b60f5c2601b7",
         "bucket": {
           "name": "videos-sample-1",
           "ownerIdentity": {
@@ -27,10 +27,10 @@
           "arn": "arn:aws:s3:::videos-sample-1"
         },
         "object": {
-          "key": "WIN_20200326_20_33_55_Pro.mp4",
-          "size": 4501094,
-          "eTag": "918c28e4eaec1da5c2d65187ae5d6ec2",
-          "sequencer": "005E836ABDAC224BE7"
+          "key": "videos/am12/",
+          "size": 0,
+          "eTag": "d41d8cd98f00b204e9800998ecf8427e",
+          "sequencer": "005EB447D991226F8C"
         }
       }
     }

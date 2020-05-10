@@ -2,9 +2,7 @@ import base64
 import os
 
 import boto3
-from boto3.dynamodb.conditions import Key
-
-
+from .AWS import AWS
 # Create your views here.
 from django.http import HttpResponse
 from django.template import loader
@@ -17,71 +15,7 @@ rekognition = boto3.client('rekognition', region_name=DEFAULT_REGION)
 s3 = boto3.client('s3')
 dynamodb = boto3.client('dynamodb', region_name=DEFAULT_REGION)
 dynamodb_resource = boto3.resource('dynamodb', region_name="us-east-1")
-
-
-def add_face_to_folder(bucket, path, photo_name):
-    name = os.path.join(path, photo_name)
-    s3.put_object(Bucket=bucket, Key=(name))
-
-
-def delete_all_collections():
-    collections = rekognition.list_collections().get("CollectionIds")
-    for col_id in collections:
-        Collection.objects.filter(collection_id=col_id).delete()
-        rekognition.delete_collection(CollectionId=col_id)
-
-
-def create_s3_folder(bucket, path, name):
-    name = f"{path}/{name}/"
-    s3.put_object(Bucket=bucket, Key=(name))
-
-
-def create_dynamodb_table(table_name):
-    try:
-        table = dynamodb.create_table(
-            TableName=table_name,
-            KeySchema=[
-                {
-                    'AttributeName': 'collection_name',
-                    'KeyType': 'HASH'  # Partition key
-                },
-                {
-                    'AttributeName': 'results',
-                    'KeyType': 'RANGE'  # sort key
-                }
-            ],
-            AttributeDefinitions=[
-                {
-                    'AttributeName': 'collection_name',
-                    'AttributeType': 'S'
-                },
-
-                {
-                    'AttributeName': 'results',
-                    'AttributeType': 'S'
-                },
-
-            ],
-            ProvisionedThroughput={
-                'ReadCapacityUnits': 10,
-                'WriteCapacityUnits': 10
-            }
-        )
-
-        print("Table status:", table)
-    except Exception as e:
-        print(e)
-
-
-def get_data_from_dynamodb_table(table_name):
-    table = dynamodb_resource.Table(table_name)
-
-    res = table.query(
-        TableName=table_name,
-        KeyConditionExpression=Key('collection_name').eq(table_name)
-    )
-    results = res['Items']
-    return results
+sns = boto3.client('sns', region_name=DEFAULT_REGION)
 
 
 def collection(request):
@@ -90,18 +24,15 @@ def collection(request):
     # delete_all_collections()
     if request.method == 'POST':
         collection_id = request.POST.get('collection_id')
+        aws = AWS(collection_id=collection_id)
         if not collection_id:
             errors.append("Please provide collection name")
         elif Collection.objects.filter(collection_id=collection_id):
 
             errors.append("Collection with this name already exist")
-
         else:
-            response = rekognition.create_collection(CollectionId=collection_id)
-            create_s3_folder(DEFAULT_BUCKET, 'faces', collection_id)
-            create_s3_folder(DEFAULT_BUCKET, 'videos', collection_id)
-            create_dynamodb_table(collection_id)
-            print(response)
+            aws.create_face_collection_attributes()
+            # create collection
             collection = Collection(collection_id=collection_id)
             collection.save()
     context = {
@@ -144,7 +75,7 @@ def collection_faces(request, id):
             key = os.path.join(path_to_collection, s3_image_name)
             s3.upload_fileobj(f, DEFAULT_BUCKET, key)
 
-        response = rekognition.index_faces(
+        face_data = rekognition.index_faces(
             CollectionId=collection.collection_id,
             Image={
                 'S3Object': {
@@ -154,8 +85,8 @@ def collection_faces(request, id):
             },
             MaxFaces=1,
         )
-        face_id = response.get('FaceRecords', [{}])[0].get('Face', {}).get('FaceId')
-        face_metadata = response.get('FaceRecords', [{}])[0].get('FaceDetail', {})
+        face_id = face_data.get('FaceRecords', [{}])[0].get('Face', {}).get('FaceId')
+        face_metadata = face_data.get('FaceRecords', [{}])[0].get('FaceDetail', {})
         if not face_id:
             errors.append("this image does not contain eny faces")
         person = Person(
@@ -163,7 +94,8 @@ def collection_faces(request, id):
             face_id=face_id,
             first_name=first_name,
             last_name=last_name,
-            image_path=key
+            image_path=key,
+            face_metadata=face_metadata
         )
         person.save()
 
@@ -177,9 +109,23 @@ def collection_faces(request, id):
 def video_results(request, id):
     template = loader.get_template('rekognition/video.html')
     collection = Collection.objects.filter(id=id).first()
-    video_rekognition_results = get_data_from_dynamodb_table(collection.collection_id)
+    aws = AWS(collection.collection_id)
+    video_rekognition_results = aws.get_data_from_dynamodb_table()
+    path_to_collection = os.path.join('videos/', collection.collection_id)
+
+    if request.method == 'POST':
+        subject = request.POST.get('subject')
+        video_name = request.POST.get('video')
+        video_path = os.path.join(DEFAULT_IMG_LOCAL_PATH, video_name)
+
+        with open(video_path, "rb") as f:
+            s3_video_name = subject + video_name
+            key = os.path.join(path_to_collection, s3_video_name)
+            s3.upload_fileobj(f, DEFAULT_BUCKET, key)
+
     context = {
-        'results': video_rekognition_results
+        'results': video_rekognition_results,
+        'collection_id': id
     }
     return HttpResponse(template.render(context, request))
 
@@ -191,3 +137,4 @@ def index(request):
         'latest_question_list': [1, 23],
     }
     return HttpResponse(template.render(context, request))
+

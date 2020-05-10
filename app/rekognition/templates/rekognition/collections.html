@@ -1,23 +1,24 @@
 {% extends 'rekognition/index.html' %}
 
 {% block content %}
-    <h3>Your collections</h3>
+<h3>Collections</h3>
+<br>
 
-    <ul>
-        {% for c in collections %}
-            <li >
-                <a href="/rekognition/collection/{{ c.id }}">{{ c.collection_id }}</a>
-            </li>
+<ul class="list-group">
+    {% for c in collections %}
+    <li class="list-group-item">
+        <a href="/rekognition/collection/{{ c.id }}">{{ c.collection_id }}</a>
+    </li>
 
-        {% endfor %}
-    </ul>
-    <form action="/rekognition/collection" method="post">
-        {% csrf_token %}
-        <label for="collection_id">Create collection:</label>
-        <input id="collection_id" type="text" name="collection_id" value="{{ current_name }}">
-        <input type="submit" value="Add">
-    </form>
-    {% for err in errors %}
-    <tr>{{ err }}</tr>
     {% endfor %}
+</ul>
+<form action="/rekognition/collection" method="post">
+    {% csrf_token %}
+    <label for="collection_id">Create collection:</label>
+    <input id="collection_id" type="text" name="collection_id" value="{{ current_name }}">
+    <input type="submit" value="Add">
+</form>
+{% for err in errors %}
+<tr>{{ err }}</tr>
+{% endfor %}
 {% endblock %}

@@ -2,10 +2,10 @@
 
 {% block content %}
 
-
+{{ collection_id}}
 <div class="container">
     <!--    {{ list }}-->
-    <form action="/rekognition/collection/{{ collection_id }}/video" method="post">
+    <form action="/rekognition/collection/{{ collection_id }}/video" method="get">
         {% csrf_token %}
 
         <button type="submit" class="btn btn-secondary btn-lg btn-block">Video results</button>

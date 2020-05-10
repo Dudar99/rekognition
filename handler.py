@@ -1,3 +1,5 @@
+import datetime
+
 import boto3
 import json
 import sys
@@ -20,7 +22,7 @@ class VideoDetect:
     rek = boto3.client('rekognition')
     sqs = boto3.client('sqs')
     sns = boto3.client('sns')
-
+    dynamodb = boto3.client('dynamodb')
     roleArn = ''
     bucket = ''
     video = ''
@@ -36,6 +38,7 @@ class VideoDetect:
         self.roleArn = role
         self.bucket = bucket
         self.video = video
+        self.collection_id = video.split('/')[-2]
 
     def get_sqs_message_success(self):
 
@@ -87,7 +90,7 @@ class VideoDetect:
                                               NotificationChannel={
                                                   'RoleArn': self.roleArn,
                                                   'SNSTopicArn': self.sns_topic_arn},
-                                              CollectionId="faces",
+                                              CollectionId=self.collection_id,
                                               )
 
         self.start_job_id = response['JobId']
@@ -98,6 +101,8 @@ class VideoDetect:
         paginationToken = ''
         finished = False
         matched_faces = []
+        max_try = 30
+        i = 0
         print("start detecting...")
         while not finished:
             response = self.rek.get_face_search(JobId=self.start_job_id,
@@ -105,7 +110,10 @@ class VideoDetect:
                                                 NextToken=paginationToken,
                                                 SortBy='TIMESTAMP')
             print(response)
+            if i > max_try:
+                raise Exception(f"Max trying {max_try}")
             if not response['JobStatus'] == 'SUCCEEDED':
+                i += 1
                 print('Video is  still processing..')
                 time.sleep(5)
                 continue
@@ -149,95 +157,62 @@ class VideoDetect:
         print(res)
         return res
 
-    def create_topic(self):
+    def _set_topic_arn(self):
 
-        # Create SNS topic
+        aws_region = 'us-east-1'
+        aws_account_id = '573200067457'
+        topic_name = self.collection_id
+        topic_arn = f"arn:aws:sns:{aws_region}:{aws_account_id}:{topic_name}"
 
-        sns_topic_name = "AmazonRekognitionExample" + get_name_suffix()
-
-        topic_response = self.sns.create_topic(Name=sns_topic_name)
-
-        # set sns topic for results posting
-        self.sns_topic_arn = topic_response['TopicArn']
-
-    def create_queue(self):
-        # create SQS queue
-        sqs_queue_name = "AmazonRekognitionQueue" + get_name_suffix()
-        self.sqs.create_queue(QueueName=sqs_queue_name)
-        self.sqs_queue_url = self.sqs.get_queue_url(QueueName=sqs_queue_name)['QueueUrl']
-
-        attributes = self.sqs.get_queue_attributes(QueueUrl=self.sqs_queue_url,
-                                                   AttributeNames=['QueueArn'])['Attributes']
-
-        sqs_queue_arn = attributes['QueueArn']
-
-        # Subscribe SQS queue to SNS topic
-        self.sns.subscribe(
-            TopicArn=self.sns_topic_arn,
-            Protocol='sqs',
-            Endpoint=sqs_queue_arn)
-
-        # Authorize SNS to write SQS queue
-        policy = """{{
-              "Version":"2012-10-17",
-              "Statement":[
-                {{
-                  "Sid":"MyPolicy",
-                  "Effect":"Allow",
-                  "Principal" : {{"AWS" : "*"}},
-                  "Action":"SQS:SendMessage",
-                  "Resource": "{}",
-                  "Condition":{{
-                    "ArnEquals":{{
-                      "aws:SourceArn": "{}"
-                    }}
-                  }}
-                }}
-              ]
-            }}""".format(sqs_queue_arn, self.sns_topic_arn)
-
-        response = self.sqs.set_queue_attributes(
-            QueueUrl=self.sqs_queue_url,
-            Attributes={
-                'Policy': policy
-            })
-
-    def delete_topic_and_queue(self):
-        self.sqs.delete_queue(QueueUrl=self.sqs_queue_url)
-        self.sns.delete_topic(TopicArn=self.sns_topic_arn)
-
-    def __subscribe_to_email(self, email: str):
-        print("Subscribing SNS to send emails")
-        response = self.sns.subscribe(
-            TopicArn=self.sns_topic_arn,
-            Protocol='email',
-            Endpoint=email,
-
-            ReturnSubscriptionArn=True | False
-        )
-        print(f"Subscribing response:{response}")
+        self.sns_topic_arn = topic_arn
 
     def publish_results_to_sns(self, recs):
-
-        self.__subscribe_to_email(email="yurii_dudar@epam.com")
         self.sns.publish(
-            TopicArn="arn:aws:sns:us-east-1:573200067457:mytopic",#self.sns_topic_arn,
+            TopicArn=self.sns_topic_arn,  # self.sns_topic_arn,
             # PhoneNumber='+380971237965',
-            Message=''.join(str(recs)),
-            Subject='Students',
+            Message=f"{len(recs)} people from your '{self.collection_id}' where detected\n"
+                    f"Please visit your videoi resutls page to see them",
+            Subject='Detection results',
 
         )
+
+    def post_results_to_dynamodb_table(self, table_name, collection_name, results):
+        results = json.dumps(results)
+        response = self.dynamodb.put_item(
+            TableName=table_name,
+            Item={
+                'collection_name': {
+                    'S': collection_name,
+
+                },
+
+                'datetime': {
+                    'S': str(datetime.datetime.now()),
+
+                },
+
+                'results': {
+                    'S': results,
+
+                }
+
+            }
+
+        )
+        print(f"Putting element ot {table_name} response : {response}")
 
 
 def lambda_handler(event, context):
     print("Test event: ", event)
     bucket_name, video_name = get_bucket_and_key(event)
+    dynamodb_table_name = video_name.split('/')[-2]
+    print(f"DynamoDb table name:{dynamodb_table_name}")
     # TODO make role dynamically (may be using serverless framework)
     role_arn = 'arn:aws:iam::573200067457:role/rekognition-dev123-us-east-1-lambdaRole'
 
     analyzer = VideoDetect(role_arn, bucket_name, video_name)
-    analyzer.create_topic()
-    analyzer.create_queue()
+    analyzer._set_topic_arn()
+    # analyzer.create_queue()
 
     analyzer.start_face_detection()
     # if analyzer.get_sqs_message_success():
@@ -245,8 +220,9 @@ def lambda_handler(event, context):
 
     analyzer.get_face_detection_results()
     response = analyzer.get_top_matched_faces()
-    # analyzer.publish_results_to_sns(response)
+    analyzer.publish_results_to_sns(response)
     # time.sleep(10)
-    analyzer.delete_topic_and_queue()
+    analyzer.post_results_to_dynamodb_table(dynamodb_table_name, dynamodb_table_name, response)
+    print(response)
 
     return "Finishing..."

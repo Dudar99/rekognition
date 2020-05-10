@@ -2,6 +2,20 @@
 
 {% block content %}
 
-    {{ results }}
-
+{{ results }}
+<div class="container">
+    <form action="/rekognition/collection/{{ collection_id }}/video" method="post">
+        {% csrf_token %}
+        <h1>Upload new video</h1>
+        <div class="form-group">
+            <label for="subject">Subject</label>
+            <input id="subject" type="text" name="subject">
+        </div>
+        <div class="form-group form-check">
+            <label for="video">Image upload:</label>
+            <input type="file" id="video" alt="Submit" width="48" height="48" name="video">
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+</div>
 {% endblock %}

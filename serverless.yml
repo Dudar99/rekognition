@@ -12,7 +12,7 @@ provider:
   name: aws
   runtime: python3.6
 
-stage: dev123
+stage: dev321
 region: us-east-1
 user: arn:aws:iam::573200067457:user/dudar99
 role: arn:aws:iam::573200067457:role/rekognition-dev123-us-east-1-lambdaRole
@@ -24,6 +24,7 @@ package:
     - data/**
     - deploy.sh
     - .aws-sam/**
+    - app/**
 
 # you can add statements to the Lambda function's IAM Role here
 #  iamRoleStatements:
@@ -55,26 +56,15 @@ package:
 #    - exclude-me-dir/**
 
 functions:
-  hello:
+  rekognition:
     handler: handler.lambda_handler
-    timeout: 500
+    timeout: 180
     events:
       - s3:
           bucket: videos-sample-1
           event: s3:ObjectCreated:*
           rules:
             - prefix: videos/
-          existing: true
-
-  create_collection_from_faces:
-
-    handler: create_collection_from_faces.lambda_handler
-    events:
-      - s3:
-          bucket: videos-sample-1
-          event: s3:ObjectCreated:*
-          rules:
-            - prefix: faces/
           existing: true
 
 
