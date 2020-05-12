@@ -2,7 +2,24 @@
 
 {% block content %}
 
-{{ results }}
+<ul class="list-group">
+    {% for r in results %}
+    <li class="list-group-item">
+        <a href="">{{ r.people_count }} persons where found on {{ r.datetime }}</a>
+        <ul class="list-group">
+            {% for p in r.peoples %}
+            <li class="list-group-item">
+                <p> {{ p.person.first_name }} {{ p.person.last_name }} - {{ p.similarity }} %</p>
+            </li>
+
+            {% endfor %}
+        </ul>
+
+    </li>
+
+    {% endfor %}
+</ul>
+
 <div class="container">
     <form action="/rekognition/collection/{{ collection_id }}/video" method="post">
         {% csrf_token %}
@@ -12,7 +29,7 @@
             <input id="subject" type="text" name="subject">
         </div>
         <div class="form-group form-check">
-            <label for="video">Image upload:</label>
+            <label for="video">Video upload:</label>
             <input type="file" id="video" alt="Submit" width="48" height="48" name="video">
         </div>
         <button type="submit" class="btn btn-primary">Submit</button>

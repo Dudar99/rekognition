@@ -1,9 +1,10 @@
 import base64
+import json
 import os
 
 import boto3
 from .AWS import AWS
-# Create your views here.
+
 from django.http import HttpResponse
 from django.template import loader
 from .models import Collection, Person
@@ -57,6 +58,24 @@ def create_faces_context(id):
                   Person.objects.filter(collection_id_id=id)],
         'collection_id': id
     }
+
+
+def prepare_video_results(res):
+    recs = []
+
+    for r in res:
+        parsed_matching = json.loads(r['results'])
+        face_ids = parsed_matching.keys()
+        peoples = Person.objects.filter(face_id__in=face_ids)
+        peoples_stats = []
+        for people in peoples:
+            peoples_stats.append({'person': people, 'similarity': parsed_matching.get(people.face_id)})
+        recs.append({
+            'people_count': len(parsed_matching),
+            'datetime': r['datetime'],
+            'peoples': peoples_stats
+        })
+    return recs
 
 
 def collection_faces(request, id):
@@ -124,7 +143,7 @@ def video_results(request, id):
             s3.upload_fileobj(f, DEFAULT_BUCKET, key)
 
     context = {
-        'results': video_rekognition_results,
+        'results': prepare_video_results(video_rekognition_results),
         'collection_id': id
     }
     return HttpResponse(template.render(context, request))
@@ -137,4 +156,3 @@ def index(request):
         'latest_question_list': [1, 23],
     }
     return HttpResponse(template.render(context, request))
-
