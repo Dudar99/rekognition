@@ -52,11 +52,20 @@ def get_base64_image(person):
     return base64_message
 
 
-def create_faces_context(id):
+def create_faces_context(collection):
+    aws = AWS(collection.collection_id)
+    description = aws.describe_collection(collection_id=collection.collection_id)
+    created_ddtm = description.get('CreationTimestamp').strftime("%m/%d/%Y, %H:%M:%S")
+    collection_description = {
+        'face_count' : description.get('FaceCount'),
+        'collection_name': collection.collection_id,
+        'created_ddtm': created_ddtm
+    }
     return {
         'faces': [{'person': person, 'img': get_base64_image(person)} for person in
-                  Person.objects.filter(collection_id_id=id)],
-        'collection_id': id
+                  Person.objects.filter(collection_id_id=collection.id)],
+        'collection_id': collection.id,
+        'collection_description': collection_description
     }
 
 
@@ -119,9 +128,7 @@ def collection_faces(request, id):
         person.save()
 
     template = loader.get_template('rekognition/collection_faces.html')
-    context = create_faces_context(id)
-    # context.update({'list' : rekognition.list_faces(CollectionId=collection.collection_id)})
-
+    context = create_faces_context(collection)
     return HttpResponse(template.render(context, request))
 
 

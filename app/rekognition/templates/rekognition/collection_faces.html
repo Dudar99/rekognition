@@ -2,9 +2,10 @@
 
 {% block content %}
 
-{{ collection_id}}
 <div class="container">
-    <!--    {{ list }}-->
+    <h2>Collection '{{ collection_description.collection_name }}'</h2>
+    <h3> Faces: {{ collection_description.face_count }}</h3>
+    <h3>Created at '{{ collection_description.created_ddtm }}'</h3>
     <form action="/rekognition/collection/{{ collection_id }}/video" method="get">
         {% csrf_token %}
 

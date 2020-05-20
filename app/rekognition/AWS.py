@@ -87,6 +87,12 @@ class AWS:
         self.sns_topic_arn = res.get('TopicArn')
         self.__subscribe_to_email(email='dudaryourko@gmail.com')
 
+
+    def describe_collection(self, collection_id):
+        return self.rekognition.describe_collection(
+            CollectionId=collection_id
+        )
+
     def __subscribe_to_email(self, email: str):
         print("Subscribing SNS to send emails")
         response = self.sns.subscribe(
