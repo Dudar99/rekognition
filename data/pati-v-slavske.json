@@ -1,0 +1,38 @@
+{
+  "Records": [
+    {
+      "eventVersion": "2.1",
+      "eventSource": "aws:s3",
+      "awsRegion": "us-east-1",
+      "eventTime": "2020-05-30T18:41:18.051Z",
+      "eventName": "ObjectCreated:CompleteMultipartUpload",
+      "userIdentity": {
+        "principalId": "AWS:AIDAYK5LC5OAWHAFAGNSQ"
+      },
+      "requestParameters": {
+        "sourceIPAddress": "5.58.201.94"
+      },
+      "responseElements": {
+        "x-amz-request-id": "B5AE9DCB6B6C67FA",
+        "x-amz-id-2": "B7Led8uIl1JAU7LGTVUzpZFKUkHhQcbYq6a1tgdowNK34POMyAMgJKD40o3SNXDPdZG/D5Oo+Q1NMn3gcVMcALslVFav/Akk"
+      },
+      "s3": {
+        "s3SchemaVersion": "1.0",
+        "configurationId": "rekognition-dev321-rekognition-2abc249ff1afde6df07400b04706e5f6",
+        "bucket": {
+          "name": "videos-sample-1",
+          "ownerIdentity": {
+            "principalId": "AY27R66G85LJ0"
+          },
+          "arn": "arn:aws:s3:::videos-sample-1"
+        },
+        "object": {
+          "key": "videos/PatiVSlavske/PatiVSlavskesample.mp4",
+          "size": 33844300,
+          "eTag": "a18522976981b582dee7bbfe45ab2fb6-5",
+          "sequencer": "005ED2A8C5D1B7D21B"
+        }
+      }
+    }
+  ]
+}

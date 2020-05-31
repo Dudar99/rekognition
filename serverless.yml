@@ -59,12 +59,14 @@ functions:
   rekognition:
     handler: handler.lambda_handler
     timeout: 180
+    memory: 2048
     events:
       - s3:
           bucket: videos-sample-1
           event: s3:ObjectCreated:*
           rules:
             - prefix: videos/
+            - suffix: .mp4
           existing: true
 
 

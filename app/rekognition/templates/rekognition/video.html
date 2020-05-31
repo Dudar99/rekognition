@@ -9,7 +9,8 @@
         <ul class="list-group">
             {% for p in r.peoples %}
             <li class="list-group-item">
-                <p> {{ p.person.first_name }} {{ p.person.last_name }} - {{ p.similarity }} %</p>
+                <p> {{ p.person.first_name }} {{ p.person.last_name }} - {{ p.similarity }} , on {{ p.timestamp }}
+                    sec. </p>
             </li>
 
             {% endfor %}

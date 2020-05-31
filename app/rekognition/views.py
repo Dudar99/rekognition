@@ -12,6 +12,7 @@ from .models import Collection, Person
 DEFAULT_IMG_LOCAL_PATH = '/home/dudar99/Pictures'
 DEFAULT_BUCKET = "videos-sample-1"
 DEFAULT_REGION = 'us-east-1'
+MILLISEC_IN_SEC = 1000
 rekognition = boto3.client('rekognition', region_name=DEFAULT_REGION)
 s3 = boto3.client('s3')
 dynamodb = boto3.client('dynamodb', region_name=DEFAULT_REGION)
@@ -57,7 +58,7 @@ def create_faces_context(collection):
     description = aws.describe_collection(collection_id=collection.collection_id)
     created_ddtm = description.get('CreationTimestamp').strftime("%m/%d/%Y, %H:%M:%S")
     collection_description = {
-        'face_count' : description.get('FaceCount'),
+        'face_count': description.get('FaceCount'),
         'collection_name': collection.collection_id,
         'created_ddtm': created_ddtm
     }
@@ -78,7 +79,11 @@ def prepare_video_results(res):
         peoples = Person.objects.filter(face_id__in=face_ids)
         peoples_stats = []
         for people in peoples:
-            peoples_stats.append({'person': people, 'similarity': parsed_matching.get(people.face_id)})
+            parsed_data = parsed_matching.get(people.face_id)
+            peoples_stats.append({'person': people,
+                                  'similarity': parsed_data['similarity'],
+                                  'timestamp': parsed_data['timestamp'] / MILLISEC_IN_SEC
+                                  })
         recs.append({
             'people_count': len(parsed_matching),
             'datetime': r['datetime'],

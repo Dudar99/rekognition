@@ -109,7 +109,7 @@ class VideoDetect:
                                                 MaxResults=maxResults,
                                                 NextToken=paginationToken,
                                                 SortBy='TIMESTAMP')
-            print(response)
+            print("Response:", response)
             if i > max_try:
                 raise Exception(f"Max trying {max_try}")
             if not response['JobStatus'] == 'SUCCEEDED':
@@ -122,14 +122,14 @@ class VideoDetect:
             print('Duration: ' + str(response['VideoMetadata']['DurationMillis']))
             print('Format: ' + response['VideoMetadata']['Format'])
             print('Frame rate: ' + str(response['VideoMetadata']['FrameRate']))
-            print()
 
             for prs in response['Persons']:
                 person = prs['Person']
                 print("Timestamp: " + str(prs['Timestamp']))
                 print("   Person: " + str(person))
                 print('Face matches:', prs['FaceMatches'])
-                matched_faces.append({'person_index': person['Index'], 'face_match': prs['FaceMatches']})
+                matched_faces.append({'person_index': person['Index'], 'face_match': prs['FaceMatches'],
+                                      'timestamp': prs['Timestamp']})
 
                 if 'NextToken' in response:
                     paginationToken = response['NextToken']
@@ -144,17 +144,17 @@ class VideoDetect:
             for fc_mtch in prs.get('face_match'):
                 faces.append(
                     {'similarity': fc_mtch['Similarity'],
-                     'face_id': fc_mtch['Face']['FaceId']
+                     'face_id': fc_mtch['Face']['FaceId'],
+                     'timestamp': prs['timestamp']
                      }
                 )
         for face in faces:
             if face['face_id'] in res:
-                if face['similarity'] > res[face['face_id']]:
-                    res[face['face_id']] = face['similarity']
+                if face['similarity'] > res[face['face_id']]['similarity']:
+                    res[face['face_id']]['similarity'] = face['similarity']
             else:
-                res.update({face['face_id']: face['similarity']})
-        # TODO make it via class field and
-        print(res)
+                res.update({face['face_id']: {'similarity': face['similarity'],
+                                              'timestamp': face['timestamp']}})
         return res
 
     def _set_topic_arn(self):
